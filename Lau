@@ -1,0 +1,364 @@
+-- [[ VOIDTY🔥 - Lifting Simulator Script ]] --
+-- [[ Created for CGO181 | Delta Executor Compatible ]] --
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "VOIDTY🔥 | Lifting Simulator",
+   LoadingTitle = "Loading VOIDTY🔥...",
+   LoadingSubtitle = "by CGO181",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "VoidtyLiftingConfig"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false
+})
+
+-- Global Variables
+_G.AutoLockWeight = false
+_G.AutoTrainMuscle = false
+_G.InstantWarpSell = false
+_G.AutoBuyBestWeight = false
+_G.AutoBuyBestDNA = false
+_G.AutoBuyNextStage = false
+_G.AutoBuyMuscle = false
+_G.AntiAFK = true
+_G.WalkSpeedValue = 500
+_G.JumpPowerValue = 50
+
+-- Tabs
+local MainTab = Window:CreateTab("Main Farm", 4483362458)
+local ShopTab = Window:CreateTab("Auto Shop", 4483362458)
+local MiscTab = Window:CreateTab("Misc Settings", 4483362458)
+
+-- [ AUTO LOCK WEIGHT POSITION (0.1 SEC) ] --
+MainTab:CreateToggle({
+   Name = "Auto-Lock Weight Position (0.1s)",
+   CurrentValue = false,
+   Flag = "AutoLockWeightToggle",
+   Callback = function(Value)
+       _G.AutoLockWeight = Value
+       task.spawn(function()
+           while _G.AutoLockWeight do
+               task.wait(0.1)
+               pcall(function()
+                   local player = game.Players.LocalPlayer
+                   local character = player.Character
+                   
+                   if character and character:FindFirstChildOfClass("Humanoid") then
+                       local humanoid = character:FindFirstChildOfClass("Humanoid")
+                       local toolInHand = character:FindFirstChildOfClass("Tool")
+                       
+                       if not toolInHand then
+                           local toolInBackpack = player.Backpack:FindFirstChildOfClass("Tool")
+                           if toolInBackpack then
+                               humanoid:EquipTool(toolInBackpack)
+                           end
+                       else
+                           toolInHand:Activate()
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ AUTO TRAIN MUSCLE (0.1 SEC) ] --
+MainTab:CreateToggle({
+   Name = "Auto Train Muscle (ฝึกกล้ามเนื้อ 0.1s)",
+   CurrentValue = false,
+   Flag = "AutoTrainMuscleToggle",
+   Callback = function(Value)
+       _G.AutoTrainMuscle = Value
+       task.spawn(function()
+           while _G.AutoTrainMuscle do
+               task.wait(0.1)
+               pcall(function()
+                   local replicatedStorage = game:GetService("ReplicatedStorage")
+                   local trainEvents = {
+                       replicatedStorage:FindFirstChild("Train", true),
+                       replicatedStorage:FindFirstChild("TrainMuscle", true),
+                       replicatedStorage:FindFirstChild("Lift", true),
+                       replicatedStorage:FindFirstChild("GainMuscle", true),
+                       replicatedStorage:FindFirstChild("AddMuscle", true)
+                   }
+                   
+                   for _, event in ipairs(trainEvents) do
+                       if event then
+                           if event:IsA("RemoteEvent") then
+                               event:FireServer()
+                           elseif event:IsA("RemoteFunction") then
+                               event:InvokeServer()
+                           end
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ INSTANT AUTO-WARP TO SELL 0.01 SEC ] --
+MainTab:CreateToggle({
+   Name = "Auto-Warp to Sell Instant (0.01s)",
+   CurrentValue = false,
+   Flag = "InstantWarpSellToggle",
+   Callback = function(Value)
+       _G.InstantWarpSell = Value
+       task.spawn(function()
+           while _G.InstantWarpSell do
+               task.wait(0.01)
+               pcall(function()
+                   local player = game.Players.LocalPlayer
+                   local character = player.Character
+                   
+                   local sellPart = workspace:FindFirstChild("SellPart", true) 
+                       or workspace:FindFirstChild("SellArea", true) 
+                       or workspace:FindFirstChild("Sell", true)
+                   
+                   if sellPart and character and character:FindFirstChild("HumanoidRootPart") then
+                       if sellPart:IsA("BasePart") then
+                           character.HumanoidRootPart.CFrame = sellPart.CFrame + Vector3.new(0, 3, 0)
+                       elseif sellPart:IsA("Model") and sellPart.PrimaryPart then
+                           character.HumanoidRootPart.CFrame = sellPart.PrimaryPart.CFrame + Vector3.new(0, 3, 0)
+                       end
+                   end
+                   
+                   local sellEvent = game:GetService("ReplicatedStorage"):FindFirstChild("Sell", true) 
+                       or game:GetService("ReplicatedStorage"):FindFirstChild("SellMuscle", true)
+                   if sellEvent then
+                       if sellEvent:IsA("RemoteEvent") then
+                           sellEvent:FireServer()
+                       elseif sellEvent:IsA("RemoteFunction") then
+                           sellEvent:InvokeServer()
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ AUTO BUY BEST AFFORDABLE WEIGHT ] --
+ShopTab:CreateToggle({
+   Name = "Auto-Buy Best Weight (ซื้อน้ำหนักที่ดีที่สุด)",
+   CurrentValue = false,
+   Flag = "AutoBuyBestWeightToggle",
+   Callback = function(Value)
+       _G.AutoBuyBestWeight = Value
+       task.spawn(function()
+           while _G.AutoBuyBestWeight do
+               task.wait(1)
+               pcall(function()
+                   local replicatedStorage = game:GetService("ReplicatedStorage")
+                   local buyWeightEvent = replicatedStorage:FindFirstChild("BuyWeight", true)
+                       or replicatedStorage:FindFirstChild("BuyTool", true)
+                       or replicatedStorage:FindFirstChild("BuyBestWeight", true)
+                       or replicatedStorage:FindFirstChild("BuyNextWeight", true)
+                   
+                   if buyWeightEvent then
+                       if buyWeightEvent:IsA("RemoteEvent") then
+                           buyWeightEvent:FireServer("Best")
+                       elseif buyWeightEvent:IsA("RemoteFunction") then
+                           buyWeightEvent:InvokeServer("Best")
+                       end
+                   else
+                       local shopEvent = replicatedStorage:FindFirstChild("BuyAll", true) 
+                           or replicatedStorage:FindFirstChild("BuyShop", true)
+                       if shopEvent and shopEvent:IsA("RemoteEvent") then
+                           shopEvent:FireServer("Weights")
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ AUTO BUY BEST AFFORDABLE DNA ] --
+ShopTab:CreateToggle({
+   Name = "Auto-Buy Best DNA (ซื้อ DNA/ความจุที่ดีที่สุด)",
+   CurrentValue = false,
+   Flag = "AutoBuyBestDNAToggle",
+   Callback = function(Value)
+       _G.AutoBuyBestDNA = Value
+       task.spawn(function()
+           while _G.AutoBuyBestDNA do
+               task.wait(1)
+               pcall(function()
+                   local replicatedStorage = game:GetService("ReplicatedStorage")
+                   local buyDNAEvent = replicatedStorage:FindFirstChild("BuyDNA", true)
+                       or replicatedStorage:FindFirstChild("BuyBestDNA", true)
+                       or replicatedStorage:FindFirstChild("BuyNextDNA", true)
+                       or replicatedStorage:FindFirstChild("BuyGenes", true)
+                   
+                   if buyDNAEvent then
+                       if buyDNAEvent:IsA("RemoteEvent") then
+                           buyDNAEvent:FireServer("Best")
+                       elseif buyDNAEvent:IsA("RemoteFunction") then
+                           buyDNAEvent:InvokeServer("Best")
+                       end
+                   else
+                       local shopEvent = replicatedStorage:FindFirstChild("BuyAll", true) 
+                           or replicatedStorage:FindFirstChild("BuyShop", true)
+                       if shopEvent and shopEvent:IsA("RemoteEvent") then
+                           shopEvent:FireServer("DNA")
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ AUTO BUY NEXT STAGE / REBIRTH ] --
+ShopTab:CreateToggle({
+   Name = "Auto Buy Next Stage (ซื้อด่าน/สเตจถัดไป)",
+   CurrentValue = false,
+   Flag = "AutoBuyNextStageToggle",
+   Callback = function(Value)
+       _G.AutoBuyNextStage = Value
+       task.spawn(function()
+           while _G.AutoBuyNextStage do
+               task.wait(1)
+               pcall(function()
+                   local replicatedStorage = game:GetService("ReplicatedStorage")
+                   local stageEvent = replicatedStorage:FindFirstChild("BuyStage", true)
+                       or replicatedStorage:FindFirstChild("NextStage", true)
+                       or replicatedStorage:FindFirstChild("BuyNextStage", true)
+                       or replicatedStorage:FindFirstChild("Rebirth", true)
+                       or replicatedStorage:FindFirstChild("RebirthEvent", true)
+                   
+                   if stageEvent then
+                       if stageEvent:IsA("RemoteEvent") then
+                           stageEvent:FireServer()
+                       elseif stageEvent:IsA("RemoteFunction") then
+                           stageEvent:InvokeServer()
+                       end
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ AUTO BUY MUSCLE / UPGRADES ] --
+ShopTab:CreateToggle({
+   Name = "Auto Buy Muscle / Upgrades",
+   CurrentValue = false,
+   Flag = "AutoBuyMuscleToggle",
+   Callback = function(Value)
+       _G.AutoBuyMuscle = Value
+       task.spawn(function()
+           while _G.AutoBuyMuscle do
+               task.wait(1)
+               pcall(function()
+                   local buyEvent = game:GetService("ReplicatedStorage"):FindFirstChild("BuyMuscle", true) 
+                       or game:GetService("ReplicatedStorage"):FindFirstChild("BuyAll", true)
+                   if buyEvent and buyEvent:IsA("RemoteEvent") then
+                       buyEvent:FireServer()
+                   end
+               end)
+           end
+       end)
+   end,
+})
+
+-- [ SPEED ADJUSTMENT SLIDER 1 TO 10000 (DEFAULT 500) ] --
+MiscTab:CreateSlider({
+   Name = "WalkSpeed Multiplier (1 - 10000)",
+   Range = {1, 10000},
+   Increment = 1,
+   Suffix = " Speed",
+   CurrentValue = 500,
+   Flag = "SpeedSlider",
+   Callback = function(Value)
+       _G.WalkSpeedValue = Value
+       pcall(function()
+           local player = game.Players.LocalPlayer
+           if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+               player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+           end
+       end)
+   end,
+})
+
+-- [ JUMP POWER SLIDER 1 TO 1000 ] --
+MiscTab:CreateSlider({
+   Name = "Jump Power / Height (1 - 1000)",
+   Range = {1, 1000},
+   Increment = 1,
+   Suffix = " Power",
+   CurrentValue = 50,
+   Flag = "JumpPowerSlider",
+   Callback = function(Value)
+       _G.JumpPowerValue = Value
+       pcall(function()
+           local player = game.Players.LocalPlayer
+           if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+               local hum = player.Character:FindFirstChildOfClass("Humanoid")
+               hum.UseJumpPower = true
+               hum.JumpPower = Value
+           end
+       end)
+   end,
+})
+
+-- ลูปรักษาความเร็วและการกระโดดให้คงที่
+task.spawn(function()
+   while task.wait(0.2) do
+       pcall(function()
+           local player = game.Players.LocalPlayer
+           if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+               local hum = player.Character:FindFirstChildOfClass("Humanoid")
+               
+               -- รักษาความเร็ว
+               if _G.WalkSpeedValue and hum.WalkSpeed ~= _G.WalkSpeedValue then
+                   hum.WalkSpeed = _G.WalkSpeedValue
+               end
+               
+               -- รักษาความสูงการกระโดด
+               if _G.JumpPowerValue and hum.JumpPower ~= _G.JumpPowerValue then
+                   hum.UseJumpPower = true
+                   hum.JumpPower = _G.JumpPowerValue
+               end
+           end
+       end)
+   end
+end)
+
+-- [ ANTI-AFK SYSTEM ] --
+MiscTab:CreateToggle({
+   Name = "Anti-AFK (กันหลุด 20 นาที)",
+   CurrentValue = true,
+   Flag = "AntiAFKToggle",
+   Callback = function(Value)
+       _G.AntiAFK = Value
+   end,
+})
+
+-- ลูป Anti-AFK เบื้องหลัง
+task.spawn(function()
+   local VirtualUser = game:GetService("VirtualUser")
+   game.Players.LocalPlayer.Idled:Connect(function()
+       if _G.AntiAFK then
+           VirtualUser:CaptureController()
+           VirtualUser:ClickButton2(Vector2.new())
+       end
+   end)
+end)
+
+-- แจ้งเตือนเมื่อโหลดสคริปต์เสร็จสิ้น
+Rayfield:Notify({
+   Title = "VOIDTY🔥 Loaded!",
+   Content = "เพิ่มระบบปรับ Jump Power (1-1000) เรียบร้อยแล้ว!",
+   Duration = 5,
+   Image = 4483362458,
+})
